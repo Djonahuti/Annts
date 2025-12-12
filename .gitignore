@@ -41,6 +41,9 @@ yarn-error.log*
 # env files
 .env*
 
+# local twilio file - contains secrets
+MY_TWILIO.md
+
 # vercel
 .vercel
 
