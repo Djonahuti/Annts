@@ -26,6 +26,7 @@ export const apiClient = {
     return callPHPBackend('/api/settings', { method: 'GET' });
   },
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   updateSettings: async (data: any) => {
     return callPHPBackend('/api/settings', {
       method: 'PATCH',
@@ -48,6 +49,7 @@ export const apiClient = {
     return callPHPBackend(url, { method: 'GET' });
   },
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   createDriver: async (data: any) => {
     return callPHPBackend('/api/drivers', {
       method: 'POST',
@@ -55,6 +57,7 @@ export const apiClient = {
     });
   },
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   updateDriver: async (id: string, data: any) => {
     return callPHPBackend(`/api/drivers?id=${id}`, {
       method: 'PATCH',
@@ -89,6 +92,7 @@ export const apiClient = {
     return callPHPBackend(`/api/contacts${query ? `?${query}` : ''}`, { method: 'GET' });
   },
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   createContact: async (data: any) => {
     return callPHPBackend('/api/contacts', {
       method: 'POST',
@@ -97,6 +101,7 @@ export const apiClient = {
   },
 
   // Contact form (contact_us)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   submitContactForm: async (data: any) => {
     return callPHPBackend('/api/contact', {
       method: 'POST',

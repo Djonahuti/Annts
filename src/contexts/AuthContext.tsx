@@ -18,6 +18,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [user, setUser] = useState<any | null>(null);
   const [role, setRole] = useState<'driver' | 'admin' | 'coordinator' | null>(null);
   const [adminRole, setAdminRole] = useState<'viewer' | 'editor' | 'admin' | null>(null);
