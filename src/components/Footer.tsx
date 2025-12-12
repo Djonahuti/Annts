@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { Phone, Mail, MapPin } from 'lucide-react'
 import { useEffect, useState } from 'react';
+import fetchWithAuth from '@/lib/api';
 import Image from 'next/image';
 import { IconBrandFacebook, IconBrandInstagram, IconBrandX } from '@tabler/icons-react';
 import { Avatar, AvatarImage } from './ui/avatar';
@@ -27,7 +28,7 @@ export default function Footer() {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const res = await fetch('/api/settings');
+        const res = await fetchWithAuth('/api/settings');
         const data = await res.json();
         if (res.ok) {
           setSettings(data);

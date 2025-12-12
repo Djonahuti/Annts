@@ -120,7 +120,8 @@ export default function ContactPage() {
     const fetchPage = async () => {
       setLoading(true);
       try {
-        const res = await fetch('/api/pages/contact');
+        const { callPHPBackend } = await import('@/lib/php-api');
+        const res = await callPHPBackend('/api/pages/contact', { method: 'GET' });
         const data = await res.json();
         if (res.ok) {
           setPage(data);
@@ -138,7 +139,8 @@ export default function ContactPage() {
 
   const onSubmit = async (data: ContactFormData) => {
     try {
-      const res = await fetch('/api/contact', {
+      const { callPHPBackend } = await import('@/lib/php-api');
+      const res = await callPHPBackend('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -1,65 +1,30 @@
-import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { NextRequest, NextResponse } from 'next/server';
+import { proxyToPHP } from '@/lib/php-api';
 
-const prisma = new PrismaClient();
-
-/* -------------------------------------------------------------
-   Helper – serialize BigInt and Date objects in one pass
-   ------------------------------------------------------------- */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const safeJSON = (data: any): any => {
-  return JSON.parse(
-    JSON.stringify(data, (key, value) => {
-      if (value instanceof Date) {
-        return value.toISOString();
-      }
-      if (typeof value === 'bigint') {
-        return Number(value);
-      }
-      return value;
-    })
-  );
-};
-
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const rows = await prisma.contact_us.findMany({ orderBy: { created_at: 'desc' } });
-    return NextResponse.json(safeJSON(rows));
+    const response = await proxyToPHP('/api/contact', {
+      method: 'GET',
+      headers: request.headers,
+    });
+    return response;
   } catch (error) {
     console.error('Error fetching contact_us:', error);
     return NextResponse.json({ error: 'Failed to fetch contact messages' }, { status: 500 });
-  } finally {
-    await prisma.$disconnect();
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
-    const data = await request.json();
-    const { name, email, phone, company, subject, message } = data;
-
-    // Basic validation
-    if (!name || !email || !message) {
-      return NextResponse.json({ error: 'Name, email, and message are required' }, { status: 400 });
-    }
-
-    await prisma.contact_us.create({
-      data: {
-        name,
-        email,
-        phone: phone || null,
-        company: company || null,
-        subject: subject || null,
-        message,
-        created_at: new Date(),
-      },
+    const body = await request.text();
+    const response = await proxyToPHP('/api/contact', {
+      method: 'POST',
+      body,
+      headers: request.headers,
     });
-
-    return NextResponse.json({ message: 'Contact message submitted successfully' }, { status: 200 });
+    return response;
   } catch (error) {
     console.error('Error submitting contact form:', error);
     return NextResponse.json({ error: 'Failed to submit contact message' }, { status: 500 });
-  } finally {
-    await prisma.$disconnect();
   }
 }

@@ -1,7 +1,5 @@
-import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { NextRequest, NextResponse } from 'next/server';
+import { proxyToPHP } from '@/lib/php-api';
 
 interface PrismaPage {
   id: number;
@@ -66,93 +64,15 @@ interface PrismaPage {
   fm: string[] | null  
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const page = await prisma.pages.findFirst({
-      where: {
-        slug: 'services',
-        is_published: true,
-      },
-      select: {
-        id: true,
-        title: true,
-        slug: true,
-        is_published: true,
-        meta_description: true,
-        text: true,
-        hero_big_black: true,
-        hero_big_primary: true,
-        hero_text: true,
-        hero_year: true,
-        hero_year_span: true,
-        hero_100: true,
-        hero_100_span: true,
-        hero_24: true,
-        hero_24_span: true,
-        hero_primary_button: true,
-        hero_secondary_button: true,
-        body_heading: true,
-        body_sub_heading: true,
-        body_first_text: true,
-        body_second_text: true,
-        body_heading2: true,
-        body_sub_heading2: true,
-        body_heading3: true,
-        body_sub_heading3: true,
-        body_heading4: true,
-        body_sub_heading4: true,
-        section_text: true,
-        section_head: true,
-        section_primary_btn: true,
-        section_secondary_btn: true,
-        team_img: true,
-        team_text: true,
-        team_role: true,
-        team_img2: true,
-        team_text2: true,
-        team_role2: true,
-        team_img3: true,
-        team_text3: true,
-        team_role3: true,
-        box_head: true,
-        box_text: true,
-        box_head2: true,
-        box_text2: true,
-        box_head3: true,
-        box_text3: true,
-        box_head4: true,
-        box_text4: true,
-        box_head5: true,
-        box_text5: true,
-        box_head6: true,
-        box_text6: true,
-        box_head7: true,
-        box_text7: true,
-        box_head8: true,
-        box_text8: true,
-        box_head9: true,
-        box_text9: true,
-        hp: true,
-        fm: true,
-        
-      },
+    const response = await proxyToPHP('/api/pages/services', {
+      method: 'GET',
+      headers: request.headers,
     });
-
-    if (!page) {
-      return NextResponse.json({ error: 'Service page not found' }, { status: 404 });
-    }
-
-    // Convert image paths to URLs (e.g., /uploads/filename)
-    const pageWithUrls = {
-      ...page,
-      id: page.id.toString(),
-    };
-
-    return NextResponse.json(pageWithUrls);
+    return response;
   } catch (error) {
     console.error('Error fetching service page:', error);
     return NextResponse.json({ error: 'Failed to fetch service page' }, { status: 500 });
-  } finally {
-    await prisma.$disconnect();
   }
 }

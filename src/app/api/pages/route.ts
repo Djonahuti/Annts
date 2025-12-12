@@ -1,38 +1,31 @@
-import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { NextRequest, NextResponse } from 'next/server';
+import { proxyToPHP } from '@/lib/php-api';
 
-const prisma = new PrismaClient();
-
-function serializeBigInt<T>(data: T): T {
-  return JSON.parse(
-    JSON.stringify(data, (_key, value) => (typeof value === 'bigint' ? Number(value) : value))
-  );
-}
-
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const pages = await prisma.pages.findMany({
-      orderBy: { created_at: 'desc' },
+    const response = await proxyToPHP('/api/pages', {
+      method: 'GET',
+      headers: request.headers,
     });
-    return NextResponse.json(serializeBigInt(pages));
+    return response;
   } catch (error) {
     console.error('Error fetching pages:', error);
     return NextResponse.json({ error: 'Failed to fetch pages' }, { status: 500 });
-  } finally {
-    await prisma.$disconnect();
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
-    const data = await request.json();
-    const created = await prisma.pages.create({ data });
-    return NextResponse.json(serializeBigInt(created), { status: 201 });
+    const body = await request.text();
+    const response = await proxyToPHP('/api/pages', {
+      method: 'POST',
+      body,
+      headers: request.headers,
+    });
+    return response;
   } catch (error) {
     console.error('Error creating page:', error);
     return NextResponse.json({ error: 'Failed to create page' }, { status: 500 });
-  } finally {
-    await prisma.$disconnect();
   }
 }
 

@@ -6,6 +6,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth } from '@/contexts/AuthContext';
+import fetchWithAuth from '@/lib/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -109,7 +110,7 @@ export default function NewInspection() {
 
     const fetchBuses = async () => {
       try {
-        const res = await fetch(`/api/coordinator/buses?email=${encodeURIComponent(user.email)}`);
+        const res = await fetchWithAuth(`/api/coordinator/buses?email=${encodeURIComponent(user.email)}`);
         if (!res.ok) throw new Error('Failed to fetch buses');
         const data = await res.json();
         setBuses(data.buses || []);
@@ -125,7 +126,7 @@ export default function NewInspection() {
           } else {
             // Fetch bus details from API
             try {
-              const busRes = await fetch(`/api/buses/${routeBusId}`);
+              const busRes = await fetchWithAuth(`/api/buses/${routeBusId}`);
               if (busRes.ok) {
                 const busData = await busRes.json();
                 form.setValue('plate_number', busData.plate_no || '');
@@ -169,7 +170,7 @@ export default function NewInspection() {
       formData.append('file', file);
       formData.append('type', 'video');
 
-      const res = await fetch('/api/upload-inspection', {
+      const res = await fetchWithAuth('/api/upload-inspection', {
         method: 'POST',
         body: formData,
       });
@@ -226,7 +227,7 @@ export default function NewInspection() {
       formData.append('file', file);
       formData.append('type', 'audio');
 
-      const res = await fetch('/api/upload-inspection', {
+      const res = await fetchWithAuth('/api/upload-inspection', {
         method: 'POST',
         body: formData,
       });
@@ -277,7 +278,7 @@ export default function NewInspection() {
       const formData = new FormData();
       formData.append('file', file);
 
-      const res = await fetch('/api/upload', {
+      const res = await fetchWithAuth('/api/upload', {
         method: 'POST',
         body: formData,
       });
@@ -354,7 +355,7 @@ export default function NewInspection() {
           formData.append('file', file);
           formData.append('type', 'video');
 
-          const res = await fetch('/api/upload-inspection', {
+          const res = await fetchWithAuth('/api/upload-inspection', {
             method: 'POST',
             body: formData,
           });
@@ -437,7 +438,7 @@ export default function NewInspection() {
           formData.append('file', file);
           formData.append('type', 'audio');
 
-          const res = await fetch('/api/upload-inspection', {
+          const res = await fetchWithAuth('/api/upload-inspection', {
             method: 'POST',
             body: formData,
           });
@@ -507,7 +508,7 @@ export default function NewInspection() {
       const monthDate = startOfMonth(values.month);
       const monthIsoString = monthDate.toISOString();
 
-      const res = await fetch('/api/inspections', {
+      const res = await fetchWithAuth('/api/inspections', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

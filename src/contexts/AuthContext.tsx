@@ -1,7 +1,7 @@
 'use client';
-import { createContext, useContext, useEffect, ReactNode } from 'react';
-import { useSession, signIn as nextAuthSignIn, signOut as nextAuthSignOut } from 'next-auth/react';
+import { createContext, useContext, useEffect, ReactNode, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import fetchWithAuth, { getToken, setToken, clearToken } from '@/lib/api';
 
 interface AuthContextType {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -16,31 +16,82 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const { data: session, status } = useSession();
   const router = useRouter();
-  const loading = status === 'loading';
-  const user = session?.user ?? null;
-  const role = session?.user?.role ?? null;
-  const adminRole = session?.user?.adminRole ?? null;
+  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<any | null>(null);
+  const [role, setRole] = useState<'driver' | 'admin' | 'coordinator' | null>(null);
+  const [adminRole, setAdminRole] = useState<'viewer' | 'editor' | 'admin' | null>(null);
 
   const signIn = async (email: string, password: string) => {
-    const res = await nextAuthSignIn('credentials', { redirect: false, email, password });
-    if (res?.error) {
-      // Handle errors like banned accounts
-      throw new Error(res.error); // e.g., "Account banned" or "Invalid credentials"
+    const { callPHPBackend } = await import('@/lib/php-api');
+    const res = await callPHPBackend('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error || 'Login failed');
     }
-    // Redirect based on role after successful sign-in
-    const { data: newSession } = await fetch('/api/auth/session').then(r => r.json());
-    return { role: newSession?.user?.role ?? null };
+    if (data.token) {
+      setToken(data.token);
+      // load user details
+      const meRes = await callPHPBackend('/api/auth/me', {
+        method: 'GET',
+        headers: { 'Authorization': `Bearer ${data.token}` },
+      });
+      if (meRes.ok) {
+        const userData = await meRes.json();
+        setUser(userData);
+        setRole(data.role || (userData?.role ?? null));
+        setAdminRole(userData?.role === 'admin' ? (userData?.adminRole ?? null) : null);
+      }
+    }
+    return { role: data.role ?? null };
   };
 
   const signOut = async () => {
-    await nextAuthSignOut({ redirect: false });
+    clearToken();
+    setUser(null);
+    setRole(null);
+    setAdminRole(null);
     router.push('/login');
   };
 
   // Only redirect on initial login, not on page refresh
   // Check if we're already on a valid page for the user's role
+  useEffect(() => {
+    const initSession = async () => {
+      const token = getToken();
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+      try {
+        const { callPHPBackend } = await import('@/lib/php-api');
+        const meRes = await callPHPBackend('/api/auth/me', {
+          method: 'GET',
+          headers: { 'Authorization': `Bearer ${token}` },
+        });
+        if (!meRes.ok) {
+          clearToken();
+          setLoading(false);
+          return;
+        }
+        const userData = await meRes.json();
+        setUser(userData);
+        setRole(userData.role ?? null);
+        setAdminRole(userData.role === 'admin' ? (userData?.adminRole ?? null) : null);
+      } catch (error) {
+        clearToken();
+      } finally {
+        setLoading(false);
+      }
+    };
+    initSession();
+  }, []);
+
+  // Handle redirects after user/role state changes
   useEffect(() => {
     if (!loading && user && role) {
       const currentPath = window.location.pathname;

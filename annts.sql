@@ -10,8 +10,8 @@
 -- Data with arrays converted to JSON format (e.g., '{val}' -> '["val"]').
 -- Truncated data in the original dump is preserved as-is; missing parts are not inferred.
 
-CREATE DATABASE IF NOT EXISTS annhurst_ts;
-USE annhurst_ts;
+CREATE DATABASE IF NOT EXISTS myczroxg_annhurst;
+USE myczroxg_annhurst;
 
 -- Table: admins
 -- Use VARCHAR(255) or appropriate length instead of TEXT for columns that need defaults

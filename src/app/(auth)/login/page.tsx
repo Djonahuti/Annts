@@ -29,11 +29,12 @@ export default function Login() {
   const [settings, setSettings] = useState<Settings | null>(null);
   const [showPassword, setShowPassword] = useState(false);
 
-  // Fetch settings from API (server-side only)
+  // Fetch settings from PHP backend
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const response = await fetch('/api/settings');
+        const { callPHPBackend } = await import('@/lib/php-api');
+        const response = await callPHPBackend('/api/settings', { method: 'GET' });
         if (!response.ok) throw new Error('Failed to load settings');
         const data = await response.json();
         setSettings({
@@ -45,7 +46,7 @@ export default function Login() {
       }
     };
     fetchSettings();
-  }, []); // ← No cleanup needed
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

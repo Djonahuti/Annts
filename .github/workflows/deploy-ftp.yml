@@ -1,0 +1,70 @@
+name: FTP Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Next.js app (static export)
+        env:
+          # Set PHP backend URL for build (use NEXT_PUBLIC_* so it's embedded at build time)
+          # This should be your domain where PHP backend is accessible
+          # If PHP_API_URL secret is not set, it will default to https://annhurst-ts.cloud
+          NEXT_PUBLIC_PHP_API_URL: ${{ secrets.PHP_API_URL }}
+          NODE_ENV: production
+        run: |
+          # Set default if secret is not provided
+          export NEXT_PUBLIC_PHP_API_URL=${NEXT_PUBLIC_PHP_API_URL:-https://annhurst-ts.cloud}
+          npm run build
+
+      - name: Prepare files for FTP (static export)
+        run: |
+          mkdir -p deploy
+          # Copy static export output (out/ folder from Next.js static export)
+          if [ -d out ]; then
+            cp -r out/* deploy/
+          else
+            echo "Error: out/ directory not found. Build may have failed."
+            exit 1
+          fi
+          # Copy PHP backend to deploy directory
+          cp -r backend-php deploy/backend-php
+          # Create .env.example in backend-php for reference (actual .env should be created on server)
+          if [ -f backend-php/.env.example ]; then
+            cp backend-php/.env.example deploy/backend-php/.env.example
+          fi
+          # Ensure uploads directory exists
+          mkdir -p deploy/uploads
+
+      - name: FTP Deploy
+        uses: SamKirkland/FTP-Deploy-Action@4.4.0
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          port: ${{ secrets.FTP_PORT }}
+          protocol: ftps
+          local-dir: deploy
+          server-dir: /
+          # Exclude node_modules and other unnecessary files
+          exclude: |
+            **/.git*
+            **/.env*
+            **/node_modules/**
+            **/.next/cache/**
+          git-ftp-args: --insecure

@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import fetchWithAuth from '@/lib/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -66,7 +67,7 @@ export default function NewInspection() {
 
     const fetchBuses = async () => {
       try {
-        const res = await fetch(`/api/coordinator/buses?email=${encodeURIComponent(user.email)}`);
+        const res = await fetchWithAuth(`/api/coordinator/buses?email=${encodeURIComponent(user.email)}`);
         if (!res.ok) throw new Error('Failed to fetch buses');
         const data = await res.json();
         setBuses(data.buses || []);
@@ -103,7 +104,7 @@ export default function NewInspection() {
       formData.append('file', file);
       formData.append('type', 'video');
 
-      const res = await fetch('/api/upload-inspection', {
+      const res = await fetchWithAuth('/api/upload-inspection', {
         method: 'POST',
         body: formData,
       });
@@ -147,7 +148,7 @@ export default function NewInspection() {
       formData.append('file', file);
       formData.append('type', 'audio');
 
-      const res = await fetch('/api/upload-inspection', {
+      const res = await fetchWithAuth('/api/upload-inspection', {
         method: 'POST',
         body: formData,
       });
@@ -185,7 +186,7 @@ export default function NewInspection() {
       const formData = new FormData();
       formData.append('file', file);
 
-      const res = await fetch('/api/upload', {
+      const res = await fetchWithAuth('/api/upload', {
         method: 'POST',
         body: formData,
       });
@@ -236,7 +237,7 @@ export default function NewInspection() {
           formData.append('file', file);
           formData.append('type', 'video');
 
-          const res = await fetch('/api/upload-inspection', {
+          const res = await fetchWithAuth('/api/upload-inspection', {
             method: 'POST',
             body: formData,
           });
@@ -304,7 +305,7 @@ export default function NewInspection() {
           formData.append('file', file);
           formData.append('type', 'audio');
 
-          const res = await fetch('/api/upload-inspection', {
+          const res = await fetchWithAuth('/api/upload-inspection', {
             method: 'POST',
             body: formData,
           });
@@ -371,7 +372,7 @@ export default function NewInspection() {
       const selectedBus = buses.find((b) => b.id.toString() === busId);
       const bothVidPdf = videoUrl && pdfUrl ? 'YES' : 'NO';
 
-      const res = await fetch('/api/inspections', {
+      const res = await fetchWithAuth('/api/inspections', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

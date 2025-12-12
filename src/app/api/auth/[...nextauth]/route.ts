@@ -1,10 +1,7 @@
 import NextAuth, { NextAuthOptions, Session, User } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { JWT } from 'next-auth/jwt';
-import { PrismaClient } from '@prisma/client';
-import bcrypt from 'bcryptjs';
-
-const prisma = new PrismaClient();
+import { proxyToPHP } from '@/lib/php-api';
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -17,49 +14,43 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
 
-        // Check admins
-        const admin = await prisma.admins.findUnique({ where: { email: credentials.email } });
-        if (admin) {
-          if (admin.banned) throw new Error('Account banned');
-          if (await bcrypt.compare(credentials.password, admin.password!)) {
-            return {
-              id: admin.id.toString(),
-              email: admin.email,
-              role: 'admin' as const,
-              adminRole: admin.role as 'viewer' | 'editor' | 'admin' | null,
-            };
-          }
-        }
+        try {
+          // Call PHP backend for authentication
+          const response = await proxyToPHP('/api/auth/login', {
+            method: 'POST',
+            body: JSON.stringify({
+              email: credentials.email,
+              password: credentials.password,
+            }),
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
 
-        // Check coordinators
-        const coord = await prisma.coordinators.findFirst({ where: { email: credentials.email } });
-        if (coord) {
-          if (coord.banned) throw new Error('Account banned');
-          if (await bcrypt.compare(credentials.password, coord.password!)) {
-            return {
-              id: coord.id.toString(),
-              email: coord.email,
-              role: 'coordinator' as const,
-              adminRole: null,
-            };
+          if (!response.ok) {
+            const error = await response.json();
+            if (error.error === 'Account banned') {
+              throw new Error('Account banned');
+            }
+            throw new Error('Invalid credentials');
           }
-        }
 
-        // Check drivers
-        const driver = await prisma.driver.findFirst({ where: { email: credentials.email } });
-        if (driver) {
-          if (driver.banned) throw new Error('Account banned');
-          if (await bcrypt.compare(credentials.password, driver.password!)) {
-            return {
-              id: driver.id.toString(),
-              email: driver.email,
-              role: 'driver' as const,
-              adminRole: null,
-            };
-          }
-        }
+          const data = await response.json();
+          const { token, role } = data;
 
-        throw new Error('Invalid credentials');
+          // Decode JWT to get user info (simplified - in production, verify signature)
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          
+          return {
+            id: payload.id.toString(),
+            email: payload.email,
+            role: role as 'admin' | 'coordinator' | 'driver',
+            adminRole: role === 'admin' ? 'admin' : null,
+          };
+        } catch (error) {
+          console.error('Auth error:', error);
+          throw error;
+        }
       },
     }),
   ],

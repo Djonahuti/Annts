@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import fetchWithAuth from '@/lib/api';
 import { Button } from "@/components/ui/button";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
@@ -40,7 +41,7 @@ export default function Contact({ coordinatorId, driverId, onSuccess }: ContactP
   useEffect(() => {
     const fetchSubjects = async () => {
       try {
-        const response = await fetch('/api/subjects');
+        const response = await fetchWithAuth('/api/subjects');
         if (response.ok) {
           const data = await response.json();
           setSubjects(data);
@@ -59,14 +60,14 @@ export default function Contact({ coordinatorId, driverId, onSuccess }: ContactP
       
       try {
         if (role === "driver") {
-          const response = await fetch(`/api/drivers?email=${encodeURIComponent(user.email || '')}`);
+          const response = await fetchWithAuth(`/api/drivers?email=${encodeURIComponent(user.email || '')}`);
           if (response.ok) {
             const data = await response.json();
             if (data?.name) setCurrentName(data.name);
             if (data?.email) setCurrentEmail(data.email);
           }
         } else if (role === "coordinator") {
-          const response = await fetch(`/api/coordinators?email=${encodeURIComponent(user.email || '')}`);
+          const response = await fetchWithAuth(`/api/coordinators?email=${encodeURIComponent(user.email || '')}`);
           if (response.ok) {
             const data = await response.json();
             if (data?.name) setCurrentName(data.name);
@@ -87,8 +88,8 @@ export default function Contact({ coordinatorId, driverId, onSuccess }: ContactP
       
       try {
         const [coordsResponse, driversResponse] = await Promise.all([
-          fetch('/api/coordinators'),
-          fetch('/api/drivers')
+          fetchWithAuth('/api/coordinators'),
+          fetchWithAuth('/api/drivers')
         ]);
         
         if (coordsResponse.ok) {
@@ -124,7 +125,7 @@ export default function Contact({ coordinatorId, driverId, onSuccess }: ContactP
         const formData = new FormData();
         formData.append('file', file);
         
-        const uploadResponse = await fetch('/api/upload', {
+        const uploadResponse = await fetchWithAuth('/api/upload', {
           method: 'POST',
           body: formData,
         });
@@ -165,14 +166,14 @@ export default function Contact({ coordinatorId, driverId, onSuccess }: ContactP
     if (role === "driver") {
       // get sender (driver)
       try {
-        const driverResponse = await fetch(`/api/drivers?email=${encodeURIComponent(user?.email || '')}`);
+          const driverResponse = await fetchWithAuth(`/api/drivers?email=${encodeURIComponent(user?.email || '')}`);
         if (driverResponse.ok) {
           const driver = await driverResponse.json();
 
           // resolve coordinator: prefer provided prop, else derive from buses by driver
           let resolvedCoordinatorId: number | null = coordinatorId ?? null;
           if (!resolvedCoordinatorId && driver?.id) {
-            const busesResponse = await fetch(`/api/buses?driverId=${driver.id}`);
+            const busesResponse = await fetchWithAuth(`/api/buses?driverId=${driver.id}`);
             if (busesResponse.ok) {
               const buses = await busesResponse.json();
               if (buses.length > 0) {
@@ -186,7 +187,7 @@ export default function Contact({ coordinatorId, driverId, onSuccess }: ContactP
 
           // get coordinator details for receiver info
           if (resolvedCoordinatorId) {
-            const coordResponse = await fetch(`/api/coordinators?email=${encodeURIComponent(user?.email || '')}`);
+            const coordResponse = await fetchWithAuth(`/api/coordinators?email=${encodeURIComponent(user?.email || '')}`);
             if (coordResponse.ok) {
               const coordinator = await coordResponse.json();
               payload.receiver = coordinator?.name || "Unknown";
@@ -200,7 +201,7 @@ export default function Contact({ coordinatorId, driverId, onSuccess }: ContactP
     } else if (role === "coordinator") {
       // get sender (coordinator)
       try {
-        const coordResponse = await fetch(`/api/coordinators?email=${encodeURIComponent(user?.email || '')}`);
+        const coordResponse = await fetchWithAuth(`/api/coordinators?email=${encodeURIComponent(user?.email || '')}`);
         if (coordResponse.ok) {
           const coordinator = await coordResponse.json();
 
@@ -261,7 +262,7 @@ export default function Contact({ coordinatorId, driverId, onSuccess }: ContactP
     console.log("Contact submit", { role, coordinatorId, driverId, payload });
 
     try {
-      const response = await fetch('/api/contacts', {
+      const response = await fetchWithAuth('/api/contacts', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

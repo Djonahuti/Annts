@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { Menu, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import fetchWithAuth from '@/lib/api'
 import { ThemeToggle } from './ThemeToggle'
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -31,7 +32,7 @@ export default function Navbar() {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const res = await fetch('/api/settings');
+        const res = await fetchWithAuth('/api/settings');
         const data = await res.json();
         if (res.ok) {
           setSettings(data);

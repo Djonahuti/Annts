@@ -3,6 +3,7 @@ import { useEffect, useState } from "react"
 import Link from "next/link";
 // Removed Supabase; use internal API endpoint
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
+import fetchWithAuth from '@/lib/api'
 import { Button } from "@/components/ui/button"
 import { useParams, useRouter } from "next/navigation";
 
@@ -24,7 +25,7 @@ export default function ContactUsDetail() {
 
   useEffect(() => {
     const fetchContactUs = async () => {
-      const res = await fetch('/api/contact')
+      const res = await fetchWithAuth('/api/contact')
       if (res.ok) {
         const rows: ContactUs[] = await res.json()
         const row = rows.find(r => String(r.id) === String(id)) || null

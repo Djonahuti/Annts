@@ -6,6 +6,7 @@ import { Star, Smile } from "lucide-react"
 import Link from 'next/link';
 import { Button } from "./ui/button"
 import { useEffect, useState } from "react"
+import fetchWithAuth from '@/lib/api'
 import { motion, type Variants, easeOut } from "framer-motion";
 
 interface Page {
@@ -70,7 +71,7 @@ export default function HeroSection() {
     const fetchPage = async () => {
       setLoading(true);
       try {
-        const res = await fetch('/api/pages/home');
+        const res = await fetchWithAuth('/api/pages/home');
         const data = await res.json();
         if (res.ok) {
           setPage(data);

@@ -3,6 +3,7 @@ import { useState, useEffect, useContext } from "react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 // Removed Supabase; use internal API endpoints
 import { useAuth } from "@/contexts/AuthContext"
+import fetchWithAuth from '@/lib/api'
 import { MailContext } from "@/contexts/MailContext"
 import type { Contact } from "@/types"
 // Ensure Contact.message allows string type
@@ -20,7 +21,7 @@ export default function ListView() {
     setSelectedMail(mail); // This now pushes it to Inbox.tsx
 
     if (mail.source !== "contact_us") {
-      await fetch('/api/contacts', {
+      await fetchWithAuth('/api/contacts', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: mail.id, is_read: true })
@@ -53,7 +54,7 @@ export default function ListView() {
       else if (activeFilter === 'Important' && role !== 'admin') params.set('is_read', 'false');
 
       // fetch normal contacts after all filters
-      const res = await fetch(`/api/contacts?${params.toString()}`)
+      const res = await fetchWithAuth(`/api/contacts?${params.toString()}`)
       let mapped: Contact[] = []
       if (res.ok) {
         const data = await res.json()
@@ -112,7 +113,7 @@ export default function ListView() {
       // Admin: augment Important with external contact_us
       let normalizedContacts: Contact[] = []
       if (role === 'admin' && activeFilter === 'Important') {
-        const res2 = await fetch('/api/contact')
+        const res2 = await fetchWithAuth('/api/contact')
         if (res2.ok) {
           const contactUs = await res2.json()
           type ContactUs = {
@@ -279,7 +280,7 @@ export default function ListView() {
 
   const toggleStar = async (contact: Contact) => {
     const newStarredStatus = !contact.is_starred;
-    await fetch('/api/contacts', {
+    await fetchWithAuth('/api/contacts', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id: contact.id, is_starred: newStarredStatus })

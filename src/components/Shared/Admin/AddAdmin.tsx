@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
+import fetchWithAuth from '@/lib/api';
 import { Progress } from '@/components/ui/progress';
 import { motion, AnimatePresence } from 'framer-motion';
 import Loader from '@/components/Loader';
@@ -51,7 +52,7 @@ export default function AddAdmin({ onSuccess }: AddAdminProps) {
   const onSubmit = async (data: AdminRegisterForm) => {
     setLoading(true);
     try {
-      const res = await fetch('/api/admins', {
+      const res = await fetchWithAuth('/api/admins', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

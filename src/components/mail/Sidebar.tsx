@@ -31,6 +31,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { MailContext } from '@/contexts/MailContext';
 import { NavUser } from './NavUser';
 import { useAuth } from '@/contexts/AuthContext';
+import fetchWithAuth from '@/lib/api';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -70,7 +71,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   // Fetch settings
   React.useEffect(() => {
     const fetchSettings = async () => {
-      const res = await fetch('/api/settings');
+      const res = await fetchWithAuth('/api/settings');
       if (res.ok) setSettings(await res.json());
     };
     fetchSettings();
@@ -98,7 +99,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       if (activeFilter === 'Starred') params.set('is_starred', 'true');
       else if (activeFilter === 'Important' && role !== 'admin') params.set('is_read', 'false');
 
-      const res = await fetch(`/api/contacts?${params.toString()}`);
+      const res = await fetchWithAuth(`/api/contacts?${params.toString()}`);
       let mapped: Contact[] = [];
       if (res.ok) {
         const data = await res.json();
@@ -143,7 +144,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
       let normalizedContacts: Contact[] = [];
       if (role === 'admin' && activeFilter === 'Important') {
-        const contactUsRes = await fetch('/api/contact');
+        const contactUsRes = await fetchWithAuth('/api/contact');
         if (contactUsRes.ok) {
           const contactUs = await contactUsRes.json();
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -215,7 +216,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     setSelectedMail(normalizedMail as any);
 
     if (!mail.is_read && mail.source === 'contact') {
-      await fetch('/api/contacts', {
+      await fetchWithAuth('/api/contacts', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: mail.id, is_read: true }),
@@ -229,7 +230,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const toggleStar = async (contact: Contact) => {
     if (contact.source !== 'contact') return;
     const newStarred = !contact.is_starred;
-    await fetch('/api/contacts', {
+    await fetchWithAuth('/api/contacts', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id: contact.id, is_starred: newStarred }),
@@ -245,7 +246,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     const contactIds = contacts.filter((c) => c.source === 'contact').map((c) => c.id);
 
     if (contactIds.length > 0) {
-      await fetch('/api/contacts', {
+      await fetchWithAuth('/api/contacts', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ids: contactIds, is_read: newStatus }),

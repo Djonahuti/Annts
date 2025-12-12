@@ -1,47 +1,22 @@
-import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
-
-function serializeBigInt<T>(data: T): T {
-  return JSON.parse(
-    JSON.stringify(data, (_key, value) => (typeof value === 'bigint' ? Number(value) : value))
-  );
-}
+import { NextRequest, NextResponse } from 'next/server';
+import { proxyToPHP } from '@/lib/php-api';
 
 export async function PATCH(
-  request: Request,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params;
-  const adminId = BigInt(id);
-  const body = await request.json();
-
-  const { role } = body;
-
   try {
-    // Update admin role
-    const admin = await prisma.admins.update({
-      where: { id: adminId },
-      data: {
-        role: role || undefined,
-      },
+    const { id } = await params;
+    const body = await request.text();
+    const response = await proxyToPHP(`/api/admins?id=${id}`, {
+      method: 'PATCH',
+      body,
+      headers: request.headers,
     });
-
-    return NextResponse.json({ 
-      message: 'Admin role updated successfully',
-      admin: serializeBigInt({
-        id: admin.id,
-        name: admin.name,
-        email: admin.email,
-        role: admin.role,
-      })
-    });
-  } catch (e) {
-    console.error(e);
+    return response;
+  } catch (error) {
+    console.error('Error updating admin role:', error);
     return NextResponse.json({ error: 'Failed to update admin role' }, { status: 500 });
-  } finally {
-    await prisma.$disconnect();
   }
 }
 

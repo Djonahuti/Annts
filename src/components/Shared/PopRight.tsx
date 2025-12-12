@@ -32,6 +32,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 import { useAuth } from "@/contexts/AuthContext"
+import fetchWithAuth from '@/lib/api'
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar"
 import { Badge } from "../ui/badge"
 import { ThemeToggle } from "../ThemeToggle"
@@ -126,12 +127,12 @@ export function PopRight() {
       try {
         let response;
         if (role === "admin") {
-          response = await fetch(`/api/admins?email=${encodeURIComponent(user.email || '')}`);
-        } else if (role === "coordinator") {
-          response = await fetch(`/api/coordinators?email=${encodeURIComponent(user.email || '')}`);
-        } else if (role === "driver") {
-          response = await fetch(`/api/drivers?email=${encodeURIComponent(user.email || '')}`);
-        }
+            response = await fetchWithAuth(`/api/admins?email=${encodeURIComponent(user.email || '')}`);
+          } else if (role === "coordinator") {
+            response = await fetchWithAuth(`/api/coordinators?email=${encodeURIComponent(user.email || '')}`);
+          } else if (role === "driver") {
+            response = await fetchWithAuth(`/api/drivers?email=${encodeURIComponent(user.email || '')}`);
+          }
 
         if (response && response.ok) {
           const data = await response.json();
@@ -149,7 +150,7 @@ export function PopRight() {
   React.useEffect(() => {
     const fetchCounts = async () => {
       try {
-        const response = await fetch('/api/contacts?is_read=false');
+        const response = await fetchWithAuth('/api/contacts?is_read=false');
         if (response.ok) {
           const contacts = await response.json();
           setUnreadCount(contacts.length);

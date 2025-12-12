@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
+import fetchWithAuth from '@/lib/api';
 import { Progress } from '@/components/ui/progress';
 import { motion, AnimatePresence } from 'framer-motion';
 import Loader from '@/components/Loader';
@@ -134,7 +135,7 @@ export default function AddDriver() {
         addresses: requestBody.addresses
       });
 
-      const res = await fetch('/api/drivers', {
+      const res = await fetchWithAuth('/api/drivers', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestBody),
