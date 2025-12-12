@@ -52,7 +52,7 @@ jobs:
           mkdir -p deploy/uploads
 
       - name: FTP Deploy
-        uses: SamKirkland/FTP-Deploy-Action@4.3.6
+        uses: SamKirkland/FTP-Deploy-Action@4
         with:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
