@@ -1,8 +1,8 @@
-import { ReactNode } from 'react';
+'use client';
+
+import { ReactNode, useEffect, useState } from 'react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import Link from 'next/link';
-import { PrismaClient } from '@prisma/client';
-
 
 type Settings = {
   logo?: string | null;
@@ -14,38 +14,33 @@ type Settings = {
   bottom_left?: string | null;
 };
 
-const prisma = new PrismaClient();
+export default function AuthLayout({ children }: { children: ReactNode }) {
+  const [settings, setSettings] = useState<Settings>({});
 
-export default async function AuthLayout({ children }: { children: ReactNode }) {
-  let settings: Settings = {};
-
-  try {
-    const settingsData = await prisma.settings.findFirst({
-      select: {
-        logo: true,
-        logo_blk: true,
-        footer_write: true,
-        footer_head: true,
-        email: true,
-        phone: true,
-        bottom_left: true,
-      },
-    });
-
-    settings = {
-      logo: settingsData?.logo || null,
-      logo_blk: settingsData?.logo_blk || null,
-      footer_write: settingsData?.footer_write || null,
-      footer_head: settingsData?.footer_head || null,
-      email: settingsData?.email || null,
-      phone: settingsData?.phone || null,
-      bottom_left: settingsData?.bottom_left || null,
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const { callPHPBackend } = await import('@/lib/php-api');
+        const response = await callPHPBackend('/api/settings', { method: 'GET' });
+        if (response.ok) {
+          const settingsData = await response.json();
+          setSettings({
+            logo: settingsData?.logo || null,
+            logo_blk: settingsData?.logo_blk || null,
+            footer_write: settingsData?.footer_write || null,
+            footer_head: settingsData?.footer_head || null,
+            email: settingsData?.email || null,
+            phone: settingsData?.phone || null,
+            bottom_left: settingsData?.bottom_left || null,
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching settings:', error);
+      }
     };
-  } catch (error) {
-    console.error('Error fetching settings:', error);
-  } finally {
-    await prisma.$disconnect();
-  }
+
+    fetchSettings();
+  }, []);
 
   return (
     <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gray-50 bg-linear-to-r dark:from-gray-400 dark:to-red-300">
