@@ -3,6 +3,14 @@ import path from 'path';
 import fs from 'fs/promises';
 import { existsSync } from 'fs';
 
+// Required for static export
+export const dynamic = 'force-static';
+
+export async function generateStaticParams(): Promise<{ path: string[] }[]> {
+  // Return empty array for static export (routes won't actually work in static export)
+  return [];
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ path: string[] }> }

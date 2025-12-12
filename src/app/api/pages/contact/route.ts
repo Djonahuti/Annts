@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { proxyToPHP } from '@/lib/php-api';
 
+// Required for static export
+export const dynamic = 'force-static';
+
 interface PrismaPage {
   id: number;
   title: string;

@@ -3,6 +3,9 @@ import path from 'path';
 import fs from 'fs/promises';
 import { v4 as uuidv4 } from 'uuid';
 
+// Required for static export
+export const dynamic = 'force-static';
+
 // Increase body size limit and timeout for this route
 export const maxDuration = 300; // 5 minutes
 export const runtime = 'nodejs';

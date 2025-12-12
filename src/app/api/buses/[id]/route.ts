@@ -2,6 +2,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { proxyToPHP } from '@/lib/php-api';
 
+// Required for static export
+export const dynamic = 'force-static';
+
+export async function generateStaticParams(): Promise<{ id: string }[]> {
+  // Return empty array for static export (routes won't actually work in static export)
+  return [];
+}
+
 /* -------------------------------------------------
    GET /api/buses/123
    → returns { bus_code: "ABC123" }

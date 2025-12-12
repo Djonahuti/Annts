@@ -3,6 +3,9 @@ import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 import { v4 as uuidv4 } from 'uuid';
 
+// Required for static export
+export const dynamic = 'force-static';
+
 export async function POST(request: Request) {
   try {
     const formData = await request.formData();

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { proxyToPHP } from '@/lib/php-api';
 
+// Required for static export
+export const dynamic = 'force-static';
 
 export async function GET(request: NextRequest) {
   try {

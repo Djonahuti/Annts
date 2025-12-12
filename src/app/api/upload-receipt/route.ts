@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import path from 'path';
 import fs from 'fs/promises';
 
+// Required for static export
+export const dynamic = 'force-static';
+
 export async function POST(request: Request) {
   try {
     const formData = await request.formData();

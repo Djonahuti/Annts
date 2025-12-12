@@ -12,8 +12,9 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  // Remove serverActions for static export
   trailingSlash: true,
+  // Skip API routes during static export (they won't work anyway)
+  distDir: '.next',
 };
 
 export default nextConfig;
